@@ -25,6 +25,7 @@
   - [Interactions based on the number of followers and/or following a user has](#interactions-based-on-the-number-of-followers-andor-following-a-user-has)
   - [Interactions based on the number of posts a user has](#interactions-based-on-the-number-of-posts-a-user-has)
   - [Custom action delays](#custom-action-delays)
+  - [Target Lists](#target-lists)
   
  <br />
 
@@ -67,8 +68,10 @@
 - **[Instance Settings](#instance-settings)**
   - [Running on a Headless Browser](#running-on-a-headless-browser)
   - [Bypass Suspicious Login Attempt](#bypass-suspicious-login-attempt)
+  - [Running internet connection checks](#running-internet-connection-checks)
   - [Use a proxy](#use-a-proxy)
   - [Running in threads](#running-in-threads)
+  - [Choose the browser version](#choose-the-browser-version)
   
  <br />
 
@@ -123,10 +126,31 @@ session.set_do_like(enabled=True, percentage=70)
 ### Commenting
 
 ```python
-# default enabled=False, ~ every 4th image will be commented on
+# enable comments (by default enabled=False) and set commenting probability to 25% so ~ every 4th image will be commented on
 
 session.set_do_comment(enabled=True, percentage=25)
+```
+``` python
+# Configure a simple list of optional comments, one will be selected at random when commenting:
 session.set_comments(['Awesome', 'Really Cool', 'I like your stuff'])
+
+# Or configure conditional comments as follows:
+# The list ofconditional comments is scanned until the first item that satisfies the mandatory words condition is found 
+# and then the comments associated with that items are used.
+# The mandatory words condition is matched against the description and first comment of the image. The condition is  
+# satisfied if any individual word from the list is found or if all the words from a sub list are found. 
+comments=[
+    # either "icecave" or "ice_cave" will satisfy this:
+    {'mandatory_words': ["icecave", "ice_cave"], 'comments': ["Nice shot. Ice caves are amazing", "Cool. Aren't ice caves just amazing?"]},
+    
+    # either "high_mountain" OR ("high" and "mountain") will satisfy this:
+    {'mandatory_words': ["high_mountain", ["high", "mountain"]], 'comments': ["I just love high mountains"]},
+
+    # Only ("high" and "tide" together) will satisfy this:
+    {'mandatory_words': [["high", "tide"]], 'comments': ["High tides are better than low"]}
+
+]
+session.set_comments(comments)
 
 # you can also set comments for specific media types (Photo / Video)
 
@@ -514,7 +538,8 @@ This feature is helpful when you want to comment only on specific tags.
 ```python
 session.set_delimit_commenting(enabled=True, comments_mandatory_words=['cat', 'dog'])
 ```
-> This will only comment on posts that contain either cat or dog in the post description or first comment.
+> This will only comment on posts that contain **either** cat or dog in the post description or first comment.
+> You can also require sets of words. See the [Commenting](#commenting) section for detains on how to do that 
 
 
 ### Interactions based on the number of followers and/or following a user has
@@ -628,6 +653,35 @@ session.set_action_delays(enabled=True, like=0.15, safety_match=False)
 ```
 _It has been held due to safety considerations. Cos sleeping a respective time after doing actions- for example ~`10` seconds after an unfollow, is very important to avoid possible temporary blocks and if you might enter e.g. `3` seconds for that without realizing the outcome..._
 
+
+### Target Lists
+#### This is used to parse text files containing target lists of users, hashtags, comments etc
+For example:
+```python
+# Like posts based on hashtags
+hashtags = session.target_list("C:\\Users\\......\\hashtags.txt")
+session.like_by_tags(hashtags, amount=10)
+
+# Follow the followers of each given user
+users = session.target_list("C:\\Users\\......\\users.txt")
+session.follow_user_followers(users, amount=10, randomize=False)
+```
+Note that your text file should look like this:
+```
+hashtag1
+hashtag2
+hashtag3
+```
+or
+```
+user1
+user2
+user3
+```
+Functions you can use ```target_list``` with:
+
+```story_by_user```, ```story_by_tag```, ```like_by_tags```, ```follow_by_tags```, ```follow_user_followers```, ```follow_user_following```, ```follow_likers```, ```follow_commenters```, ```follow_by_list```, ```set_skip_users```, ```set_ignore_users```, ```set_dont_include```, ```interact_by_users```, ```interact_by_users_tagged_posts```, ```interact_user_followers```, ```interact_user_following```, ```interact_by_comments```, ```set_comments```, ```set_comment_replies```, ```set_mandatory_words```, ```unfollow_users```
+
 ---
 
 <br /> 
@@ -727,21 +781,21 @@ session.follow_by_tags(['tag1', 'tag2'], amount=10)
 ```
 
 #### Parameters:
- `tags`: The tags that will be searched for and posts will be liked from
+ `tags`: The tags that will be searched for and authors of the posts will be followed.
 
-  `amount`: The amount of posts that will be liked
+  `amount`: The amount of posts that the author of the post will be followed
 
-  `skip_top_posts`: Determines whether the first 9 top posts should be liked or not (default is True)
+  `skip_top_posts`: Determines whether the first 9 top users of posts should be followed or not (default is True)
 
-  `use_smart_hashtags`: Make use of the [smart hashtag feature]()
+  `use_smart_hashtags`: Make use of the [smart hashtag feature](#smart-hashtags)
 
-  `use_smart_location_hashtags`: Make use of the [smart location hashtag feature]()
+  `use_smart_location_hashtags`: Make use of the [smart location hashtag feature](#smart-location-hashtags)
 
   `interact`: Defines whether the users of the given post should also be interacted with (needs `set_user_interact` to be also set)
 
-  `randomize`: Determines whether the first `amount` of posts should be liked or a random selection.
+  `randomize`: Determines whether the first `amount` of post authors should be liked or a random selection.
 
-  `media`: Determines which media should be liked, Photo or Video (default is `None` which is all)
+  `media`: Determines which media should be considered, Photo or Video (default is `None` which is all)
 
 
 ### Follow by Locations
@@ -1765,6 +1819,18 @@ session = InstaPy(username=insta_username,
                   proxy_port=4444)
 ```
 
+### Running internet connection checks
+InstaPy can perform a few checks online, including you connection and the availability of Instagram servers. These checks sometimes fail because Instapy uses third party services to perform these checks. If this should be the case. you can override these checks with this variable: `want_check_browser`.
+
+`want_check_browser` default is False, you can set it to True at session start. Recommend to do this if you want to add additional checks for the connection to the web and Instagram.
+
+example:
+```python
+session = InstaPy(username=insta_username,
+                  password=insta_password,
+                  want_check_browser=True)
+```
+
 ### Running in threads
 If you're running InstaPy in threads and get exception `ValueError: signal only works in main thread` , you have to properly close the session.
 There is two ways to do it:
@@ -1784,6 +1850,20 @@ session = InstaPy()
 session.login()
 # some activity here ...
 session.end(threaded_session=True)
+```
+
+### Choose the browser version
+If you have more than one Firefox version on your system or if you are using a portable version you can instruct InstaPy to use that version using the `browser_executable_path` argument in the class initializer.
+
+Specifying the Firefox executable path can also help you if you are getting the following error message:
+
+`selenium.common.exceptions.SessionNotCreatedException: Message: Unable to find a matching set of capabilities`
+
+example on a Windows machine (with the right path also works on Linux and MAC)
+```python
+session = InstaPy(username=insta_username,
+                  password=insta_password,
+                  browser_executable_path=r"D:\Program Files\Mozilla Firefox\firefox.exe")
 ```
 
 ---

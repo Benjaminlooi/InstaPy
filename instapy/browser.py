@@ -33,7 +33,7 @@ def get_geckodriver():
     asset_path = use_assets()
     gdd = GeckoDriverDownloader(asset_path, asset_path)
     # skips download if already downloaded
-    bin_path, sym_path = gdd.download_and_install()
+    sym_path = gdd.download_and_install()[1]
     return sym_path
 
 
@@ -60,6 +60,7 @@ def set_selenium_local_session(
     disable_image_load,
     page_delay,
     geckodriver_path,
+    browser_executable_path,
     logger,
 ):
     """Starts local session for a selenium server.
@@ -87,6 +88,9 @@ def set_selenium_local_session(
     else:
         firefox_profile = webdriver.FirefoxProfile()
 
+    if browser_executable_path is not None:
+        firefox_options.binary = browser_executable_path
+
     # set English language
     firefox_profile.set_preference("intl.accept_languages", "en-US")
     firefox_profile.set_preference("general.useragent.override", user_agent)
@@ -99,9 +103,9 @@ def set_selenium_local_session(
     if proxy_address and proxy_port:
         firefox_profile.set_preference("network.proxy.type", 1)
         firefox_profile.set_preference("network.proxy.http", proxy_address)
-        firefox_profile.set_preference("network.proxy.http_port", proxy_port)
+        firefox_profile.set_preference("network.proxy.http_port", int(proxy_port))
         firefox_profile.set_preference("network.proxy.ssl", proxy_address)
-        firefox_profile.set_preference("network.proxy.ssl_port", proxy_port)
+        firefox_profile.set_preference("network.proxy.ssl_port", int(proxy_port))
 
     # mute audio while watching stories
     firefox_profile.set_preference("media.volume_scale", "0.0")

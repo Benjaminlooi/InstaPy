@@ -2285,6 +2285,12 @@ def parse_cli_args():
         action="store_true",
         default=None,
     )
+    parser.add_argument(
+        "-wcb",
+        "--want_check_browser",
+        help="Check connectivity before connecting to Instagram",
+        default=None,
+    )
 
     """ Style below can convert strings into booleans:
     ```parser.add_argument("--is-debug",
@@ -2392,6 +2398,23 @@ def get_query_hash(browser, logger):
         return hash[0]
     else:
         logger.warn("Query Hash not found")
+
+
+def file_handling(file):
+    """ Extracts text file's elements """
+    elements = []
+    try:
+        with open(file, "r") as f:
+            # extract file's lines in list
+            for line in f.readlines():
+                if line != "\n":
+                    # remove leading whitespaces, newline and tab characters
+                    element = line.lstrip().strip("\n")
+                    elements.append(element)
+    except FileNotFoundError:
+        return ["FileNotFoundError"]
+
+    return elements
 
 
 class CustomizedArgumentParser(ArgumentParser):

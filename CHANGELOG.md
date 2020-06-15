@@ -3,6 +3,59 @@
 The **goal** of this file is explaining to the users of our project the notable changes _relevant to them_ that occurred _between_ commits.
 
 _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)_.
+
+
+## [0.6.9] - 2020-06-12
+
+### Added
+
+- Additional parameter `browser_executable_path` now available when initializing InstaPy. Use it to run a specific installation of Firefox.
+- A new feature - `target_list()` to parse text files containing target lists of users, hashtags etc.
+
+
+### Changed
+- Remove `view-source` which stops bot from proceeding 
+- Remove instagram status check
+
+
+## [0.6.8] - 2020-01-28
+
+### Fixed
+
+- xPath for breaking LIKE and COMMENT
+
+
+## [0.6.7] - 2020-01-05
+
+### Fixed
+
+- Adjusted follow xPath
+
+
+## [0.6.6] - 2019-11-11
+
+### Changed
+
+- Additional web checks default `False` to avoid erros on runtime
+
+
+## [0.6.5] - 2019-10-20
+
+### Added
+
+- Additional CLI-Argument for connection checks
+
+### Changed
+
+- Post types now as Enum in separate file
+
+### Fixed
+
+- Internet connection checks
+- Small typos in documentation
+- Firefox Proxy error
+
+
 ## [0.6.4] - 2019-09-15
 
 ### Fixed
@@ -18,7 +71,7 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 - Improved documentation
 - Added "no_comments" for Pods
-- Improve Tox / Travis testing
+- Improved Tox / Travis testing
 - Improved random sleep delay
 - Telegram support
 

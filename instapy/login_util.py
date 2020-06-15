@@ -163,8 +163,8 @@ def check_browser(browser, logfolder, logger, proxy_address):
 
     # check connection status
     try:
-        logger.info("-- Connection Checklist [1/3] (Internet Connection Status)")
-        browser.get("view-source:https://api.myip.com/")
+        logger.info("-- Connection Checklist [1/2] (Internet Connection Status)")
+        browser.get("view-source:https://ip4.seeip.org/geoip")
         pre = browser.find_element_by_tag_name("pre").text
         current_ip_info = json.loads(pre)
         if (
@@ -186,7 +186,7 @@ def check_browser(browser, logfolder, logger, proxy_address):
                 '- Current IP is "{}" and it\'s from "{}/{}"'.format(
                     current_ip_info["ip"],
                     current_ip_info["country"],
-                    current_ip_info["cc"],
+                    current_ip_info["country_code"],
                 )
             )
             update_activity(
@@ -207,46 +207,8 @@ def check_browser(browser, logfolder, logger, proxy_address):
         )
         return False
 
-    # check Instagram.com status
-    try:
-        logger.info("-- Connection Checklist [2/3] (Instagram Server Status)")
-        browser.get("https://isitdownorjust.me/instagram-com/")
-        sleep(2)
-        # collect isitdownorjust.me website information
-        website_status = browser.find_element_by_xpath(
-            read_xpath(login_user.__name__, "website_status")
-        )
-        response_time = browser.find_element_by_xpath(
-            read_xpath(login_user.__name__, "response_time")
-        )
-        response_code = browser.find_element_by_xpath(
-            read_xpath(login_user.__name__, "response_code")
-        )
-
-        logger.info("- Instagram WebSite Status: {} ".format(website_status.text))
-        logger.info("- Instagram Response Time: {} ".format(response_time.text))
-        logger.info("- Instagram Reponse Code: {}".format(response_code.text))
-        logger.info("- Instagram Server Status: ok")
-        update_activity(
-            browser,
-            action=None,
-            state="Instagram servers are running correctly",
-            logfolder=logfolder,
-            logger=logger,
-        )
-    except Exception:
-        logger.warn("- Instagram Server Status: error")
-        update_activity(
-            browser,
-            action=None,
-            state="Instagram server is down",
-            logfolder=logfolder,
-            logger=logger,
-        )
-        return False
-
     # check if hide-selenium extension is running
-    logger.info("-- Connection Checklist [3/3] (Hide Selenium Extension)")
+    logger.info("-- Connection Checklist [2/2] (Hide Selenium Extension)")
     webdriver = browser.execute_script("return window.navigator.webdriver")
     logger.info("- window.navigator.webdriver response: {}".format(webdriver))
     if webdriver:
@@ -266,13 +228,16 @@ def login_user(
     logfolder,
     proxy_address,
     security_code_to_phone,
+    want_check_browser,
 ):
     """Logins the user with the given username and password"""
     assert username, "Username not provided"
     assert password, "Password not provided"
 
-    if not check_browser(browser, logfolder, logger, proxy_address):
-        return False
+    # Hotfix - this check crashes more often than not -- plus in not necessary, I can verify my own connection
+    if want_check_browser:
+        if not check_browser(browser, logfolder, logger, proxy_address):
+            return False
 
     ig_homepage = "https://www.instagram.com"
     web_address_navigator(browser, ig_homepage)
@@ -319,7 +284,13 @@ def login_user(
                 read_xpath(login_user.__name__, "login_elem_no_such_exception")
             )
         except NoSuchElementException:
-            return False
+            print("Could not pass the login A/B test. Trying last string...")
+            try:
+                login_elem = browser.find_element_by_xpath(
+                    read_xpath(login_user.__name__, "login_elem_no_such_exception_2")
+                )
+            except NoSuchElementException:
+                return False
 
     if login_elem is not None:
         try:

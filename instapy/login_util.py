@@ -161,52 +161,6 @@ def check_browser(browser, logfolder, logger, proxy_address):
         logger=logger,
     )
 
-    # check connection status
-    # try:
-    #     logger.info("-- Connection Checklist [1/2] (Internet Connection Status)")
-    #     browser.get("view-source:https://ip4.seeip.org/geoip")
-    #     pre = browser.find_element_by_tag_name("pre").text
-    #     current_ip_info = json.loads(pre)
-    #     if (
-    #         proxy_address is not None
-    #         and socket.gethostbyname(proxy_address) != current_ip_info["ip"]
-    #     ):
-    #         logger.warn("- Proxy is set, but it's not working properly")
-    #         logger.warn(
-    #             '- Expected Proxy IP is "{}", and the current IP is "{}"'.format(
-    #                 proxy_address, current_ip_info["ip"]
-    #             )
-    #         )
-    #         logger.warn("- Try again or disable the Proxy Address on your setup")
-    #         logger.warn("- Aborting connection...")
-    #         return False
-    #     else:
-    #         logger.info("- Internet Connection Status: ok")
-    #         logger.info(
-    #             '- Current IP is "{}" and it\'s from "{}/{}"'.format(
-    #                 current_ip_info["ip"],
-    #                 current_ip_info["country"],
-    #                 current_ip_info["country_code"],
-    #             )
-    #         )
-    #         update_activity(
-    #             browser,
-    #             action=None,
-    #             state="Internet connection is ok",
-    #             logfolder=logfolder,
-    #             logger=logger,
-    #         )
-    # except Exception:
-    #     logger.warn("- Internet Connection Status: error")
-    #     update_activity(
-    #         browser,
-    #         action=None,
-    #         state="There is an issue with the internet connection",
-    #         logfolder=logfolder,
-    #         logger=logger,
-    #     )
-    #     return False
-
     # check if hide-selenium extension is running
     logger.info("-- Connection Checklist [2/2] (Hide Selenium Extension)")
     webdriver = browser.execute_script("return window.navigator.webdriver")

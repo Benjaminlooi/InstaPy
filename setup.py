@@ -40,7 +40,7 @@ setup(
     maintainer="InstaPy Community at Github",
     license="GPLv3",
     url=project_homepage,
-    download_url=(project_homepage + "/archive/master.zip"),
+    # download_url=(project_homepage + "/archive/master.zip"),
     project_urls={
         "How Tos": (project_homepage + "/tree/master/docs"),
         "Examples": (project_homepage + "/tree/master/quickstart_templates"),
@@ -49,7 +49,7 @@ setup(
         "Say Thanks!": "http://saythanks.io/to/uluQulu",
         "Source": (project_homepage + "/tree/master/instapy"),
     },
-    packages=["instapy"],
+    # packages=["instapy"],
     # include_package_data=True,  # <- packs every data file in the package
     package_data={  # we need only the files below:
         "instapy": [

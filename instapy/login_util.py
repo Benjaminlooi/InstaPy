@@ -161,7 +161,7 @@ def check_browser(browser, logfolder, logger, proxy_address):
         logger=logger,
     )
 
-    # check if hide-selenium extension is running2
+    # check if hide-selenium extension is running23
     logger.info("-- Connection Checklist [2/2] (Hide Selenium Extension)")
     webdriver = browser.execute_script("return window.navigator.webdriver")
     logger.info("- window.navigator.webdriver response: {}".format(webdriver))

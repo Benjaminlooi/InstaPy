@@ -9,12 +9,17 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ### Added 
 - Use random tag list for `session.like_by_tags`
 
+### Changed
+- General log rotation, gecko driver log in user directory, comments in 80 chars
+
 ### Fixed
 - Unfollowing of users that haven't posted anything
 - `get_links` xpath for yet another change
 - Path for Obtaining user id
 - `like_util.py` list index out of range error
 - `like_by_feed()` method
+- `follow_user_following
+- processing unexpected alert error on resize
 
 ## [0.6.10] - 2020-07-30
 

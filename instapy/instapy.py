@@ -10,7 +10,8 @@ import unicodedata
 import logging
 import logging.handlers
 
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from math import ceil
 from sys import platform
 from platform import python_version
@@ -27,11 +28,12 @@ except ModuleNotFoundError:
 
 # import InstaPy modules
 from . import __version__
+from .constants import MEDIA_PHOTO
+from .constants import MEDIA_VIDEO
 from .clarifai_util import check_image
 from .comment_util import comment_image
 from .comment_util import get_comments_on_post
 from .comment_util import process_comments
-from .constants import MEDIA_PHOTO, MEDIA_VIDEO
 from .like_util import check_link
 from .like_util import verify_liking
 from .like_util import get_links_for_tag
@@ -47,7 +49,6 @@ from .settings import Settings
 from .settings import localize_path
 from .print_log_writer import log_follower_num
 from .print_log_writer import log_following_num
-
 from .time_util import sleep
 from .time_util import set_sleep_percentage
 from .util import get_active_users
@@ -62,6 +63,7 @@ from .util import parse_cli_args
 from .util import get_cord_location
 from .util import get_bounding_box
 from .util import file_handling
+from .util import scroll_down
 from .unfollow_util import get_given_user_followers
 from .unfollow_util import get_given_user_following
 from .unfollow_util import unfollow
@@ -87,13 +89,11 @@ from .browser import set_selenium_local_session
 from .browser import close_browser
 from .file_manager import get_workspace
 from .file_manager import get_logfolder
-
 from .pods_util import group_posts
 from .pods_util import get_recent_posts_from_pods
 from .pods_util import share_my_post_with_pods
 from .pods_util import share_with_pods_restriction
 from .pods_util import comment_restriction
-
 from .xpath import read_xpath
 
 # import exceptions
@@ -126,6 +126,7 @@ class InstaPy:
         bypass_security_challenge_using: str = "email",
         want_check_browser: bool = True,
         browser_executable_path: str = None,
+        geckodriver_log_level: str = "info",  # "info" by default
     ):
         print("InstaPy Version: {}".format(__version__))
         cli_args = parse_cli_args()
@@ -331,6 +332,7 @@ class InstaPy:
                 browser_executable_path,
                 self.logfolder,
                 self.logger,
+                geckodriver_log_level,
             )
             if len(err_msg) > 0:
                 raise InstaPyError(err_msg)
@@ -353,7 +355,7 @@ class InstaPy:
             file_handler = logging.FileHandler(general_log)
             # log rotation, 5 logs with 10MB size each one
             file_handler = RotatingFileHandler(
-                general_log, maxBytes=10*1024*1024, backupCount=5
+                general_log, maxBytes=10 * 1024 * 1024, backupCount=5
             )
             file_handler.setLevel(logging.DEBUG)
             extra = {"username": self.username}
@@ -553,11 +555,11 @@ class InstaPy:
         self, enabled: bool = False, percentage: int = 0, simulate: bool = False
     ):
         """
-            configure stories
-            enabled: to add story to interact
-            percentage: how much to watch
-            simulate: if True, we will simulate watching (faster),
-                      but nothing will be seen on the browser window
+        configure stories
+        enabled: to add story to interact
+        percentage: how much to watch
+        simulate: if True, we will simulate watching (faster),
+                  but nothing will be seen on the browser window
         """
         if self.aborting:
             return self
@@ -570,13 +572,13 @@ class InstaPy:
 
     def set_dont_like(self, tags: list = []):
         """Changes the possible restriction tags, if one of this
-         words is in the description, the image won't be liked but user
-         still might be unfollowed"""
+        words is in the description, the image won't be liked but user
+        still might be unfollowed"""
         if self.aborting:
             return self
 
         if not isinstance(tags, list):
-            self.logger.warning("Unable to use your set_dont_like " "configuration!")
+            self.logger.warning("Unable to use your set_dont_like configuration!")
             self.aborting = True
 
         self.dont_like = tags
@@ -585,14 +587,12 @@ class InstaPy:
 
     def set_mandatory_words(self, tags: list = []):
         """Changes the possible restriction tags, if all of this
-         hashtags is in the description, the image will be liked"""
+        hashtags is in the description, the image will be liked"""
         if self.aborting:
             return self
 
         if not isinstance(tags, list):
-            self.logger.warning(
-                "Unable to use your set_mandatory_words " "configuration!"
-            )
+            self.logger.warning("Unable to use your set_mandatory_words configuration!")
             self.aborting = True
 
         self.mandatory_words = tags
@@ -1438,6 +1438,7 @@ class InstaPy:
         amount: int = 50,
         media: str = None,
         skip_top_posts: bool = True,
+        randomize: bool = False,
     ):
         """Likes (default) 50 images per given locations"""
         if self.aborting:
@@ -1452,6 +1453,9 @@ class InstaPy:
 
         locations = locations or []
         self.quotient_breach = False
+
+        if randomize is True:
+            random.shuffle(locations)
 
         for index, location in enumerate(locations):
             if self.quotient_breach:
@@ -1665,6 +1669,8 @@ class InstaPy:
         followed = 0
         inap_img = 0
         not_valid_users = 0
+        msg = None
+        location = None
 
         locations = locations or []
         self.quotient_breach = False
@@ -2125,6 +2131,7 @@ class InstaPy:
             else False
         )
 
+        username = None
         liked_img = 0
         total_liked_img = 0
         already_liked = 0
@@ -2329,7 +2336,7 @@ class InstaPy:
             if liked_img < amount:
                 self.logger.info("-------------")
                 self.logger.info(
-                    "--> Given amount not fullfilled, " "image pool reached its end\n"
+                    "--> Given amount not fullfilled, image pool reached its end\n"
                 )
 
         self.logger.info("User: {}".format(username.encode("utf-8")))
@@ -2642,7 +2649,7 @@ class InstaPy:
             if liked_img < amount:
                 self.logger.info("-------------")
                 self.logger.info(
-                    "--> Given amount not fullfilled, image pool " "reached its end\n"
+                    "--> Given amount not fullfilled, image pool reached its end\n"
                 )
 
         if len(usernames) > 1:
@@ -2948,7 +2955,7 @@ class InstaPy:
             if liked_img < amount:
                 self.logger.info("-------------")
                 self.logger.info(
-                    "--> Given amount not fullfilled, image pool " "reached its end\n"
+                    "--> Given amount not fullfilled, image pool reached its end\n"
                 )
 
         # final words
@@ -3851,13 +3858,20 @@ class InstaPy:
 
         return self
 
-    def like_by_feed(self, **kwargs):
-        """Like the users feed"""
+    def like_by_feed(self, amount, randomize, unfollow, interact):
+        """
+        Like the users feed
+
+        :param amount: Specifies how many total likes you want to perform
+        :param randomize: randomly skips posts to be liked on your feed
+        :param unfollow: unfollows the author of a post which was considered inappropriate
+        :param interact: visits the author's profile page of a
+        """
 
         if self.aborting:
             return self
 
-        for i in self.like_by_feed_generator(**kwargs):
+        for _ in self.like_by_feed_generator(amount, randomize, unfollow, interact):
             pass
 
         return self
@@ -3869,7 +3883,14 @@ class InstaPy:
         unfollow: bool = False,
         interact: bool = False,
     ):
-        """Like the users feed"""
+        """
+        Like the users feed
+
+        :param amount: Specifies how many total likes you want to perform
+        :param randomize: randomly skips posts to be liked on your feed
+        :param unfollow: unfollows the author of a post which was considered inappropriate
+        :param interact: visits the author's profile page of a
+        """
 
         if self.aborting:
             return
@@ -3917,7 +3938,7 @@ class InstaPy:
 
             num_of_search += 1
 
-            for i, link in enumerate(links):
+            for _, link in enumerate(links):
                 if liked_img == amount:
                     break
 
@@ -3938,7 +3959,7 @@ class InstaPy:
                 else:
                     if link in history:
                         self.logger.info(
-                            "This link has already " "been visited: {}".format(link)
+                            "This link has already been visited: {}".format(link)
                         )
                         continue
                     else:
@@ -4023,7 +4044,7 @@ class InstaPy:
 
                                         except Exception as err:
                                             self.logger.error(
-                                                "Image check error:" " {}".format(err)
+                                                "Image check error: {}".format(err)
                                             )
 
                                     # commenting
@@ -4425,8 +4446,10 @@ class InstaPy:
             dump_follow_restriction(self.username, self.logger, self.logfolder)
             dump_record_activity(self.username, self.logger, self.logfolder)
 
-            with open("{}followed.txt".format(self.logfolder), "w") as followFile:
-                followFile.write(str(self.followed))
+            with open("{}followed.txt".format(self.logfolder), "a") as followFile:
+                followFile.write(
+                    "{:%Y-%m-%d %H:%M} {}\n".format(datetime.now(), self.followed or 0)
+                )
 
             # output live stats before leaving
             self.live_report()
@@ -4924,7 +4947,7 @@ class InstaPy:
         peak_server_calls_daily: int = None,
     ):
         """
-         Sets aside QS configuration ANY time in a session
+        Sets aside QS configuration ANY time in a session
         """
 
         # take a reference of the global configuration
@@ -5087,7 +5110,7 @@ class InstaPy:
         else:
             if media is not None:
                 self.logger.warning(
-                    "Unkown media type set at" " comment replies! Treating as 'any'."
+                    "Unkown media type set at comment replies! Treating as 'any'."
                 )
 
             self.comment_replies = replies
@@ -5592,6 +5615,9 @@ class InstaPy:
                         "Reached accepted accounts limit of {} requests".format(amount)
                     )
                     break
+                # catch if the list cannot be accessed, there are more followers under the hood or
+                # because another element <a class="gKAyB " href="/accounts/activity/"> obscures it...
+                scroll_down(self.browser)
 
         self.logger.info("Accepted {} follow requests".format(accepted))
 
@@ -5632,6 +5658,7 @@ class InstaPy:
                 "//a[contains(@href, '/p/')]"
             )
             post_links = []
+            post_link = None
 
             for post_link_elem in post_link_elems:
                 try:

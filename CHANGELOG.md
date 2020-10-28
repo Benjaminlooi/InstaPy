@@ -2,9 +2,34 @@
 
 The **goal** of this file is explaining to the users of our project the notable changes _relevant to them_ that occurred _between_ commits.
 
-_The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)_.
+_The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)_
 
-## Unreleased
+## [0.6.12] - UNRELEASED
+### Added
+- Defined local variables ( ie: 'unfollow_state') to fix message for referenced before assignment
+- *.code-workspace in .gitignore for vscode project (macOS)
+- `like_by_locations()` with randomize flag
+- Added firefox_options.log.level = geckodriver_log_level for debugging
+- `dissmiss_save_information` in `login_user()`
+- new path used in login_util.py
+- information for geckodriver_log_level, development only
+
+### Changed
+- check if liking activity was blocked after every like
+- Call scroll_down() after follower accepted, with this new def the window is scrolled down after accepting a follower.
+- Sorted imports, to make code readable
+- Modified followed.txt log to append information
+- `like_image` now needs to handle images and videos
+- Imports were ordered
+- `like_by_feed` limits from 100 to 50
+
+### Fixed
+- fixed some comments were double quotes were not necessary
+- issue where `getTitle` was timing out
+- `get_users_through_dialog_with_graphql` with a new try/except
+
+
+## [0.6.11] - 2020-09-25
 
 ### Added 
 - Use random tag list for `session.like_by_tags`
